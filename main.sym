@@ -1,0 +1,72 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 1
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.                                                    =  002710 L
+    .__.ABS.                                                    =  000000 G
+    .__.CPU.                                                    =  000000 L
+    .__.H$L.                                                    =  000000 L
+  0 _GRAVITY                                                       000147 GR
+    _LCDC_REG                                                      ****** GX
+  2 _RectTile                                                      0002B8 GR
+  2 _TriaTile                                                      0002D8 GR
+    _WX_REG                                                        ****** GX
+    _WY_REG                                                        ****** GX
+  0 ___str_0                                                       00010F R
+  0 ___str_1                                                       000117 R
+  0 ___str_2                                                       000148 R
+  0 ___str_3                                                       00014A R
+    __moduint                                                      ****** GX
+    __muluschar                                                    ****** GX
+  7 __xinit__RectTile                                              0002B8 R
+  7 __xinit__TriaTile                                              0002D8 R
+  7 __xinit__bg                                                    000000 R
+  7 __xinit__groundTiles                                           00023F R
+  7 __xinit__ground_y                                              0002E8 R
+  7 __xinit__hello                                                 0002AF R
+  2 _bg                                                            000000 GR
+  0 _chartoRAMInt                                                  000000 R
+  0 _checkcollision                                                00015C GR
+  0 _draw_win                                                      0000FB GR
+  0 _draw_win_line                                                 00004C GR
+    _font_init                                                     ****** GX
+    _font_load                                                     ****** GX
+    _font_min                                                      ****** GX
+    _font_set                                                      ****** GX
+  2 _groundTiles                                                   00023F GR
+  2 _ground_y                                                      0002E8 GR
+  2 _hello                                                         0002AF GR
+    _joypad                                                        ****** GX
+  0 _jump                                                          00014C GR
+  1 _jumping                                                       000002 GR
+  0 _main                                                          0002CE GR
+  0 _move                                                          0001B4 GR
+  1 _player_pos                                                    000003 GR
+    _set_bkg_data                                                  ****** GX
+    _set_bkg_tiles                                                 ****** GX
+  0 _set_jumping                                                   00011D GR
+    _set_sprite_data                                               ****** GX
+    _set_win_tile_xy                                               ****** GX
+    _shadow_OAM                                                    ****** GX
+  1 _speed                                                         000000 GR
+    _strlen                                                        ****** GX
+    _sys_time                                                      ****** GX
+    _wait_vbl_done                                                 ****** GX
+
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE                                      size    36A   flags    0
+   1 _DATA                                      size      5   flags    0
+   2 _INITIALIZED                               size    2E9   flags    0
+   3 _DABS                                      size      0   flags    8
+   4 _HOME                                      size      0   flags    0
+   5 _GSINIT                                    size      0   flags    0
+   6 _GSFINAL                                   size      0   flags    0
+   7 _INITIALIZER                               size    2E9   flags    0
+   8 _CABS                                      size      0   flags    8
+

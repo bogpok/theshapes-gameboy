@@ -1,0 +1,1 @@
+D:\ProgramFiles\bgbw64\bgb64.exe main.gb
