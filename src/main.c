@@ -157,24 +157,14 @@ void move(uint8_t dt){
         //set_sprite_tile(0,1);               
     }
     if (joypad() & J_B){
-        next_state();
-        
+        next_state();        
         set_sprite_tile(0,state);               
     } else {
         canChangeState = 1;
-    }
-
-    /*  switch(joypad()){            
-        case J_A:
-            
-            break;
-        case J_B:
-            set_sprite_tile(0,0);
-            break;            
-    } */    
+    }        
 
     int8_t dx = speed[0]*dt;
-    if (!checkcollision(player_pos[0]+=dx, player_pos[1]+=speed[1]*dt)){
+    if (!checkcollision(player_pos[0]+dx, player_pos[1]+speed[1]*dt)){
         player_pos[0]+=dx;
         player_pos[1]+=speed[1]*dt;
     }
