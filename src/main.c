@@ -7,6 +7,8 @@
 #include "winmap.c"
 #include "tiles.c"
 
+UBYTE const DEBUG = 1;
+
 int8_t speed[2];
 BYTE jumping;
 
@@ -20,9 +22,9 @@ void set_jumping(BYTE on){
     
     
     if (on){        
-        draw_win_line(8, 0, "1");
+        draw_win_line(6, 0, "YES");
     } else {
-        draw_win_line(8, 0, "0");
+        draw_win_line(6, 0, "NO ");
     }    
     
     move_win(7, 120);
@@ -32,7 +34,7 @@ void jump()
 {    
     if (jumping==0){        
         set_jumping(1);
-        speed[1] = -5;
+        speed[1] = -4;
     }
              
 }
@@ -40,14 +42,35 @@ void jump()
 UBYTE checkcollision(uint8_t x, uint8_t y){
     uint8_t tile_i = x / 8;
     uint8_t tile_j = y / 8;
+    char txy[10];
+    sprintf(txy, "X%d", tile_i);   
+    draw_win_line(11, 0, "   ");  
+    draw_win_line(10, 0, txy);
+    sprintf(txy, "Y%d", tile_j); 
+    draw_win_line(16, 0, "   "); 
+    draw_win_line(15, 0, txy);
+
     uint8_t tile_id = bgWidth*tile_i + tile_j;
-    return bg[tile_id] == 0x00;
+    char tile_idc[10];
+    sprintf(tile_idc, "%d", tile_id); 
+    draw_win_line(6, 2, "   ");     
+    draw_win_line(6, 2, tile_idc);
+
+    UBYTE result = (bg[tile_id] == 0x00) || (bg[tile_id] == 0x24);
+    if (result) {
+        draw_win_line(6, 1, "NO ");
+    } else {
+        draw_win_line(6, 1, "YES");
+    }   
+    
+    return result;
 }
 
 void move(uint8_t dt){    
 
-    // Moving controls
-    if (joypad() & J_LEFT){
+    if (DEBUG){
+        // TESTING controls
+        if (joypad() & J_LEFT){
             speed[0] = -1;
         } else if (joypad() & J_RIGHT){
             speed[0] = 1;
@@ -55,14 +78,51 @@ void move(uint8_t dt){
             speed[0] = 0;
         }
 
-    
-    if (joypad() & J_UP){
-        jump();                
-    }
-    // fall
-    speed[1] += GRAVITY;
+        if (joypad() & J_UP){
+            speed[1] = -1;
+        } else if (joypad() & J_DOWN){
+            speed[1] = 1;
+        } else {
+            speed[1] = 0;
+        }
+    } else {
+        // Moving controls
+        if (joypad() & J_LEFT){
+            speed[0] = -1;
+        } else if (joypad() & J_RIGHT){
+            speed[0] = 1;
+        } else {
+            speed[0] = 0;
+        }
 
         
+        if (joypad() & J_UP){
+            jump();                
+        }
+        // fall
+        speed[1] += GRAVITY;
+
+        // == Boundaries ==
+
+        // Screen borders
+        // Left offset is 8 pixels
+        if (player_pos[0] < 16){
+            player_pos[0] = 16;
+            speed[0] = 0;        
+        }
+
+        // Ground  
+        if (player_pos[1] >= ground_y){
+            player_pos[1] = ground_y;
+            speed[1] = 0;
+            set_jumping(0);
+        } else if (player_pos[1]<=ground_y-50){
+            // ceil
+            player_pos[1] = ground_y-50;
+            set_jumping(1);        
+        }
+    }
+    
     // Other controls    
     if (joypad() & J_A){
         set_sprite_tile(0,1);               
@@ -87,25 +147,7 @@ void move(uint8_t dt){
     
 
 
-    // == Boundaries ==
-
-    // Screen borders
-    // Left offset is 8 pixels
-    if (player_pos[0] < 16){
-        player_pos[0] = 16;
-        speed[0] = 0;        
-    }
-
-    // Ground  
-    if (player_pos[1] >= ground_y){
-        player_pos[1] = ground_y;
-        speed[1] = 0;
-        set_jumping(0);
-    } else if (player_pos[1]<=ground_y-50){
-        // ceil
-        player_pos[1] = ground_y-50;
-        set_jumping(1);        
-    }
+    
     
 
     
@@ -144,7 +186,7 @@ void main()
     SHOW_SPRITES;
     
     // INITIAL DATA
-    uint8_t dt = 5;
+    uint8_t dt = 2;
     
     player_pos[0] = 16;
     player_pos[1] = ground_y;    

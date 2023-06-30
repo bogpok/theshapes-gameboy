@@ -2,8 +2,6 @@
 
 // What appears on window
 
-char hello[] = "HELLO228";
-
 static inline char chartoRAMInt(char c) {
   // first tile in RAM is blank
   // "0" is 0x01
@@ -34,12 +32,16 @@ void draw_win_line(int8_t xt, int8_t yt, char text[]) {
     //set_win_tiles(xt, yt, 1, 1, chartoRAMIntPoint(text[i]));
     set_win_tile_xy(xt+i, yt, chartoRAMInt(text[i]));
   } 
-
 }
 
 void draw_win(){
-  draw_win_line(0, 0, "JUMPING");
-  draw_win_line(0, 1, "KY KY");
+  draw_win_line(0, 0, "JUMP");
+  draw_win_line(0, 1, "COLL");  
+  draw_win_line(0, 2, "TILID");
+
+  //draw_win_line(10, 0, "PT");
+  //draw_win_line(10, 1, "TL");  
+  //draw_win_line(10, 2, "TILEID");  
 }
 
 /* End of winmap.C */
