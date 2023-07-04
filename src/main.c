@@ -9,6 +9,10 @@
 
 
 const UBYTE DEBUG = 1;
+uint8_t screen_offset[2] = {8, 16};
+
+const unsigned char emptyTilesId[2] = {0x00, 0x25};
+
 const uint8_t GRAVITY = 1;
 uint8_t ground_y = 108;
 
@@ -22,6 +26,11 @@ uint8_t state = 0;
 uint8_t n_states = 2;
 UBYTE canChangeState = 1;
 
+void resetPlayerPos(){
+    player_pos[0] = 24;
+    player_pos[1] = 50;
+}
+
 void next_state(){
     if (canChangeState){
         state++;
@@ -34,14 +43,11 @@ void next_state(){
 
 void set_jumping(UBYTE on){
     jumping = on;
-    
-    
     if (on){        
         draw_win_line(6, 0, "YES");
     } else {
         draw_win_line(6, 0, "NO ");
-    }    
-    
+    }        
     move_win(7, 120);
 }
 
@@ -54,44 +60,117 @@ void jump()
              
 }
 
-/**
- * Verify collision with map tileset
- * When coverting from pixel x, y the offset (X: 1 tiles, Y: 2 tiles) is considered
- * x, y: uint8_t coords [pixels]
- * Return:
- * UBYTE 0 - when there is a tile, which considered a blank, e.g. 0x00
- * UBYTE 1 - otherwise
-*/
-UBYTE checkcollision(uint8_t x, uint8_t y){
-    char charstub[10];
-    uint8_t tile_i = (x - 8) / 8;
-    uint8_t tile_j = (y - 16) / 8;
-
-    uint16_t tile_id = tile_i + bgWidth*tile_j;
-    UBYTE result = (bg[tile_id] == 0x00) || (bg[tile_id] == 0x25);
-    
+void debugColl(uint8_t tile_i, uint8_t tile_j, uint16_t tile_id, char bgc, UBYTE result){
     // DEBUG WINDOW
+    char charstub[10];
+    // XY
     sprintf(charstub, "X%d", tile_i);   
     draw_win_line(11, 0, "   ");  
     draw_win_line(10, 0, charstub);
     sprintf(charstub, "Y%d", tile_j); 
     draw_win_line(16, 0, "   "); 
     draw_win_line(15, 0, charstub);    
-    
+    // TILE ID
     sprintf(charstub, "%d", tile_id); 
-    draw_win_line(6, 2, "   ");     
+    draw_win_line(6, 2, "    ");     
     draw_win_line(6, 2, charstub);
-
-    sprintf(charstub, "%d", bg[tile_id]); 
+    // BG TILE CHAR
+    sprintf(charstub, "%d", bgc); 
     draw_win_line(10, 2, "   ");     
     draw_win_line(10, 2, charstub);
-    
+    // IF THERE IS COLLISION
     if (result) {
+        // 'empty' tile
         draw_win_line(6, 1, "NO ");
     } else {
+        // non-'empty' tile
         draw_win_line(6, 1, "YES");
     }   
+}
+
+/**
+ * Verify collision with map tileset
+ * When coverting from pixel x, y the offset (X: 1 tiles, Y: 2 tiles) is considered
+ * x, y: uint8_t coords [pixels]
+ * speed: current speed
+ * Return:
+ * UBYTE 0 - when there is a tile, which considered a blank, e.g. 0x00
+ * UBYTE 1 - otherwise
+*/
+UBYTE checkcollision(uint8_t x, uint8_t y, int8_t speed[2]){    
     
+    uint16_t tile_id;
+    UBYTE result;
+    UBYTE resultx;
+    UBYTE resulty;
+    uint8_t player_width = 8;
+    // offset difference by the player sprite
+    // 6 = player_width/2 + step??
+    uint8_t od = 6;
+    uint8_t t_left = (x + 0 - screen_offset[0]) / 8;
+    uint8_t t_right = (x + od - screen_offset[0]) / 8;
+    uint8_t t_top = (y + 0 - screen_offset[1]) / 8;
+    uint8_t t_bottom = (y + od - screen_offset[1]) / 8;
+
+    uint16_t tid_topleft = t_left + bgWidth*t_top;   
+    uint16_t tid_bottomleft = t_left + bgWidth*t_bottom; 
+    uint16_t tid_topright = t_right + bgWidth*t_top; 
+    uint16_t tid_bottomright = t_right + bgWidth*t_bottom; 
+
+    // OX
+    // this does not count right and bottom
+    //result = (bg[tid_topleft] == emptyTilesId[0]) || (bg[tid_topleft] == [1]);
+    tile_id = t_left;
+    resultx = 1;
+    if (speed[0] > 0){
+        // check right
+        tile_id = t_right;
+        if (tid_topright != tid_bottomright) {
+            // if top and bottom are not in the same tile
+            // so check lower tile first IF ITS EMPTY
+            resultx = (bg[tid_bottomright] == emptyTilesId[0]) 
+            || (bg[tid_bottomright] == emptyTilesId[1]);            
+        } 
+    } else if (speed[0] < 0) {
+        if (tid_topleft != tid_bottomleft) {
+            // if top and bottom are not in the same tile
+            // so check lower tile first IF ITS EMPTY
+            resultx = (bg[tid_bottomleft] == emptyTilesId[0]) 
+            || (bg[tid_bottomleft] == emptyTilesId[1]);            
+        } 
+    }
+
+    // OY
+    resulty = 1;
+    if (speed[1] > 0){
+        // check bottom
+        tile_id += bgWidth*t_bottom;
+        if (tid_bottomleft != tid_bottomright) {
+            // if left and right are not in the same tile
+            // so check lower tile first IF ITS EMPTY
+            resulty = ((bg[tid_bottomright] == emptyTilesId[0]) 
+            || (bg[tid_bottomright] == emptyTilesId[1]))
+            && ((bg[tid_bottomleft] == emptyTilesId[0]) 
+            || (bg[tid_bottomleft] == emptyTilesId[1]));      
+            
+        } 
+    } else {
+        tile_id += bgWidth*t_top;
+        if (tid_topleft != tid_topright) {
+            // if left and right are not in the same tile
+            // so check lower tile first IF ITS EMPTY
+            resulty = ((bg[tid_topright] == emptyTilesId[0]) 
+            || (bg[tid_topright] == emptyTilesId[1]))
+            && ((bg[tid_topleft] == emptyTilesId[0]) 
+            || (bg[tid_topleft] == emptyTilesId[1]));     
+            
+        } 
+    }
+    result = resultx && resulty
+    && ((bg[tile_id] == 0x00) || (bg[tile_id] == 0x25));
+
+
+    debugColl(t_left, t_top, tile_id, bg[tile_id], result); 
     return !result;
 }
 
@@ -135,8 +214,8 @@ void move(uint8_t dt){
 
         // Screen borders
         // Left offset is 8 pixels
-        if (player_pos[0] < 16){
-            player_pos[0] = 16;
+        if (player_pos[0] < screen_offset[0]){
+            player_pos[0] = screen_offset[0];
             speed[0] = 0;        
         }
 
@@ -154,7 +233,7 @@ void move(uint8_t dt){
     
     // Other controls    
     if (joypad() & J_A){
-        //set_sprite_tile(0,1);               
+        resetPlayerPos();             
     }
     if (joypad() & J_B){
         next_state();        
@@ -164,10 +243,13 @@ void move(uint8_t dt){
     }        
 
     int8_t dx = speed[0]*dt;
-    if (!checkcollision(player_pos[0]+dx, player_pos[1]+speed[1]*dt)){
+    int8_t dy = speed[1]*dt;    
+
+    if (!checkcollision(player_pos[0]+dx, player_pos[1]+dy, speed)){
         player_pos[0]+=dx;
-        player_pos[1]+=speed[1]*dt;
+        player_pos[1]+=dy;
     }
+    
     move_sprite(0, player_pos[0], player_pos[1]);
 
     // === HANDLE BACKGROUND ===
@@ -190,7 +272,7 @@ void main()
     set_bkg_data(37, 7, groundTiles);
     // x, y, w, h
     // w - width of area to set in tiles (1-32)
-    set_bkg_tiles(0, 0, 32, 18,bg);
+    set_bkg_tiles(0, 0, 32, 18, bg);
     SHOW_BKG;
     
     draw_win(); 
@@ -207,8 +289,8 @@ void main()
     // INITIAL DATA
     uint8_t dt = 2;
     
-    player_pos[0] = 16;
-    player_pos[1] = ground_y;    
+    player_pos[0] = 24;
+    player_pos[1] = ground_y-24;    
     
     speed[0]=0;
     speed[1]=0;
@@ -219,7 +301,6 @@ void main()
 
     while(1){
         //printf("%d; ", sys_time);
-        
 
         // Instead of using a blocking delay() for things such as sprite 
         // animations/etc (which can prevent the rest of the game from 
@@ -234,9 +315,7 @@ void main()
             move(dt);
         }
         
-        
         // HALTs the CPU and waits for the vertical blank interrupt (VBL) to finish.
         wait_vbl_done();
-        
     }
 }
